@@ -56,13 +56,8 @@ type RabbitMQConfig struct {
 }
 
 func Load() (*Config, error) {
-	// Step 1: load .env into real OS environment variables (development only).
-	// godotenv.Load() is intentionally silent on a missing file — in production
-	// there is no .env file; secrets arrive as real env vars from Docker/K8s/AWS.
 	_ = godotenv.Load()
 
-	// Step 2: read config.yaml (non-secret, committed to git).
-	// Viper reads nested YAML keys like `database.max_open_conns`.
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
@@ -71,37 +66,10 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("reading config.yaml: %w", err)
 	}
 
-	// Step 3: environment variables override everything in the YAML.
-	// SetEnvKeyReplacer maps nested yaml keys to flat env var names:
-	//   database.dsn  →  DATABASE_DSN
-	//   s3.access_key_id  →  S3_ACCESS_KEY_ID
+
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// --- ALTERNATIVE: viper.Unmarshal ---
-	// Instead of filling cfg field-by-field, viper can decode the entire merged
-	// config (yaml + env vars) into a struct in one call:
-	//
-	//   var cfg Config
-	//   if err := viper.Unmarshal(&cfg); err != nil {
-	//       return nil, fmt.Errorf("unmarshaling config: %w", err)
-	//   }
-	//
-	// Unmarshal uses the `mapstructure` library internally. It lowercases Go
-	// field names, so "DSN" → "dsn" and "MaxOpenConns" → "maxopenconns", which
-	// won't match the yaml key "max_open_conns". To fix that, add mapstructure
-	// tags to every struct field:
-	//
-	//   type DatabaseConfig struct {
-	//       DSN             string `mapstructure:"dsn"`
-	//       MaxOpenConns    int    `mapstructure:"max_open_conns"`
-	//       ...
-	//   }
-	//
-	// Less code in Load() but more noise on every struct. The explicit
-	// GetString/GetInt approach below makes each yaml→Go mapping obvious.
-	// Both patterns are used in production; this one is clearer while learning.
-	// -------------------------------------------------------------------------
 
 	cfg := &Config{
 		Server: ServerConfig{
