@@ -1,0 +1,23 @@
+server:
+  port: "8080"
+  env: "development"
+
+database:
+  max_open_conns: 25
+  max_idle_conns: 5
+  conn_max_lifetime: 300   # seconds before a connection is recycled
+
+redis:
+  db: 0
+
+jwt:
+  access_ttl: 15    # minutes
+  refresh_ttl: 7    # days
+
+s3:
+  region: "us-east-1"
+  bucket: "hashvault"
+  use_ssl: false
+
+oauth:
+  google_callback_url: "http://localhost:8080/api/v1/auth/google/callback"
