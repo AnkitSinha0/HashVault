@@ -15,6 +15,7 @@ type Config struct {
 	JWT      JWTConfig
 	S3       S3Config
 	RabbitMQ RabbitMQConfig
+	OAuth    OAuthConfig
 }
 
 type ServerConfig struct {
@@ -53,6 +54,12 @@ type S3Config struct {
 
 type RabbitMQConfig struct {
 	URL string
+}
+
+type OAuthConfig struct {
+	GoogleClientID     string
+	GoogleClientSecret string
+	GoogleCallbackURL  string
 }
 
 func Load() (*Config, error) {
@@ -103,6 +110,11 @@ func Load() (*Config, error) {
 		},
 		RabbitMQ: RabbitMQConfig{
 			URL: viper.GetString("rabbitmq.url"),
+		},
+		OAuth: OAuthConfig{
+			GoogleClientID:     viper.GetString("oauth.google_client_id"),
+			GoogleClientSecret: viper.GetString("oauth.google_client_secret"),
+			GoogleCallbackURL:  viper.GetString("oauth.google_callback_url"),
 		},
 	}
 
