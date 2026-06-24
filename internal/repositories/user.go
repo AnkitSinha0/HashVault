@@ -38,7 +38,9 @@ func (r *userRepo) FindByEmail(ctx context.Context, email string) (*models.User,
 	}
 	return &user, err
 }
-
+//*models.user is a pointer and pointers can be nil so thats why we have 
+// return value as *models.user not models.User cause struct can't be nil 
+// and we chose to have return as nil or the actual user object
 func (r *userRepo) FindByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
 	err := r.db.WithContext(ctx).First(&user, "id = ?", id).Error
