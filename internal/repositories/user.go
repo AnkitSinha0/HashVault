@@ -14,14 +14,14 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
 	FindByID(ctx context.Context, id uuid.UUID) (*models.User, error)
 	// IncrementStorage adds delta bytes to used_storage atomically.
-	// delta is negative when freeing space.
+	// delta is negative when freeing space. '_____'
 	IncrementStorage(ctx context.Context, id uuid.UUID, delta int64) error
 }
 
 type userRepo struct {
 	db *gorm.DB
 }
-
+//constuctor (constructs the ready to use object) :)
 func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepo{db: db}
 }
