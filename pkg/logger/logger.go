@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
-
+// global log var
 var Log *zap.Logger
 
 func Init(env string) {
