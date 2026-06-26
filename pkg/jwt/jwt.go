@@ -71,6 +71,7 @@ func (m *Manager) ValidateAccessToken(tokenStr string) (*Claims, error) {
 		}
 		return nil, ErrInvalidToken
 	}
+	// type assertion 
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
 		return nil, ErrInvalidToken
