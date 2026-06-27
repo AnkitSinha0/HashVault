@@ -39,9 +39,6 @@ func NewPublisher(conn *amqp.Connection, log *zap.Logger) (*Publisher, error) {
 	return &Publisher{ch: ch, log: log}, nil
 }
 
-// Publish sends payload as a persistent JSON message to the exchange.
-// Errors are logged but not returned — email delivery is non-critical and
-// must never roll back the caller's user operation.
 func (p *Publisher) Publish(ctx context.Context, routingKey string, payload any) {
 	body, err := json.Marshal(payload)
 	if err != nil {
