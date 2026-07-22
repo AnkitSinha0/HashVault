@@ -8,9 +8,10 @@ import (
 )
 
 type Handlers struct {
-	Health *handlers.HealthHandler
-	Auth   *handlers.AuthHandler
-	OAuth  *handlers.OAuthHandler
+	Health  *handlers.HealthHandler
+	Auth    *handlers.AuthHandler
+	OAuth   *handlers.OAuthHandler
+	Folders *handlers.FolderHandler
 }
 
 func Setup(r *gin.Engine, h Handlers, jwt *appjwt.Manager) {
@@ -32,7 +33,14 @@ func Setup(r *gin.Engine, h Handlers, jwt *appjwt.Manager) {
 	}
 
 	// All protected routes live here — RequireAuth validates the Bearer token.
-	// Phases 2–5 will add folder, file, and share routes to this group.
 	protected := v1.Group("/", middleware.RequireAuth(jwt))
-	_ = protected
+
+	folders := protected.Group("/folders")
+	{
+		folders.POST("", h.Folders.Create)
+		folders.GET("", h.Folders.ListRoot)
+		folders.GET("/:id", h.Folders.ListChildren)
+		folders.PATCH("/:id", h.Folders.Rename)
+		folders.DELETE("/:id", h.Folders.Delete)
+	}
 }
