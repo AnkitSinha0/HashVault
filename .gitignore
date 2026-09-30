@@ -4,3 +4,11 @@ tmp/
 *.exe
 *.test
 *.out
+
+# graphify knowledge-graph output (regenerable)
+graphify-out/
+
+# local learning notes / AI workflow docs (not part of the product)
+JIT/
+Engineering_Decisions_WorkFlow.md
+CLAUDE.md
