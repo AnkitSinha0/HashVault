@@ -70,11 +70,13 @@ func main() {
 	// --- Repositories ---
 
 	userRepo := repositories.NewUserRepository(db)
+	folderRepo := repositories.NewFolderRepository(db)
 
 	// --- Services ---
 
 	authSvc := services.NewAuthService(userRepo, redisClient, jwtManager, publisher)
 	oauthSvc := services.NewOAuthService(cfg, userRepo, redisClient, jwtManager)
+	folderSvc := services.NewFolderService(folderRepo)
 
 	// --- Queue worker ---
 
@@ -96,9 +98,10 @@ func main() {
 	r.Use(gin.Recovery())
 
 	routes.Setup(r, routes.Handlers{
-		Health: handlers.NewHealthHandler(),
-		Auth:   handlers.NewAuthHandler(authSvc),
-		OAuth:  handlers.NewOAuthHandler(oauthSvc),
+		Health:  handlers.NewHealthHandler(),
+		Auth:    handlers.NewAuthHandler(authSvc),
+		OAuth:   handlers.NewOAuthHandler(oauthSvc),
+		Folders: handlers.NewFolderHandler(folderSvc),
 	}, jwtManager)
 
 	srv := &http.Server{
