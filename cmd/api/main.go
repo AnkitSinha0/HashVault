@@ -16,6 +16,7 @@ import (
 	"github.com/AnkitSinha0/HashVault/internal/repositories"
 	"github.com/AnkitSinha0/HashVault/internal/routes"
 	"github.com/AnkitSinha0/HashVault/internal/services"
+	"github.com/AnkitSinha0/HashVault/internal/storage"
 	appjwt "github.com/AnkitSinha0/HashVault/pkg/jwt"
 	"github.com/AnkitSinha0/HashVault/pkg/logger"
 	"github.com/gin-gonic/gin"
@@ -67,16 +68,24 @@ func main() {
 		time.Duration(cfg.JWT.RefreshTTL)*24*time.Hour,
 	)
 
+	s3Client, err := storage.NewS3Client(context.Background(), cfg)
+	if err != nil {
+		log.Fatal("s3 client init failed", zap.Error(err))
+	}
+
 	// --- Repositories ---
 
 	userRepo := repositories.NewUserRepository(db)
 	folderRepo := repositories.NewFolderRepository(db)
+	fileRepo := repositories.NewFileRepository(db)
+	storageObjectRepo := repositories.NewStorageObjectRepository(db)
 
 	// --- Services ---
 
 	authSvc := services.NewAuthService(userRepo, redisClient, jwtManager, publisher)
 	oauthSvc := services.NewOAuthService(cfg, userRepo, redisClient, jwtManager)
 	folderSvc := services.NewFolderService(folderRepo)
+	fileSvc := services.NewFileService(fileRepo, storageObjectRepo, folderRepo, userRepo, s3Client)
 
 	// --- Queue worker ---
 
@@ -102,6 +111,7 @@ func main() {
 		Auth:    handlers.NewAuthHandler(authSvc),
 		OAuth:   handlers.NewOAuthHandler(oauthSvc),
 		Folders: handlers.NewFolderHandler(folderSvc),
+		Files:   handlers.NewFileHandler(fileSvc),
 	}, jwtManager)
 
 	srv := &http.Server{
