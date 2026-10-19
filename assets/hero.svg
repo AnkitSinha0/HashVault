@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400" role="img" aria-labelledby="title desc">
+  <title id="title">HashVault</title>
+  <desc id="desc">Two users upload the same photo. Both are hashed with SHA-256, the hashes match, and the bytes are stored once with ref_count 2.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#1e293b"/>
+    </pattern>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="type1"><rect x="80" y="262" height="28" width="0">
+      <animate attributeName="width" dur="8s" repeatCount="indefinite" calcMode="discrete"
+        values="0;34;68;102;136;170;204;238;272;306;340;340"
+        keyTimes="0;0.04;0.06;0.08;0.10;0.12;0.14;0.16;0.18;0.20;0.22;1"/>
+    </rect></clipPath>
+    <clipPath id="type2"><rect x="80" y="296" height="28" width="0">
+      <animate attributeName="width" dur="8s" repeatCount="indefinite"
+        values="0;0;480;480" keyTimes="0;0.24;0.36;1"/>
+    </rect></clipPath>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .flow { stroke-dasharray: 6 8; animation: flow 1.2s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -28; } }
+      .caret { animation: blink 1s steps(1) infinite; }
+      @keyframes blink { 50% { opacity: 0; } }
+    </style>
+  </defs>
+
+  <!-- card -->
+  <rect width="1200" height="400" rx="18" fill="url(#bg)"/>
+  <rect width="1200" height="400" rx="18" fill="url(#dots)"/>
+  <rect x="0.5" y="0.5" width="1199" height="399" rx="18" fill="none" stroke="#1f2937"/>
+
+  <!-- ============ left: wordmark + terminal ============ -->
+  <text x="64" y="92" class="mono" font-size="15" fill="#64748b">github.com/AnkitSinha0/HashVault</text>
+  <text x="58" y="170" class="sans" font-size="78" font-weight="800" letter-spacing="-2" fill="url(#brand)">HashVault</text>
+  <text x="64" y="214" class="sans" font-size="22" fill="#cbd5e1">Content-addressed cloud storage, built from scratch in Go.</text>
+
+  <rect x="60" y="244" width="540" height="98" rx="10" fill="#0a0f1c" stroke="#1f2a3a"/>
+  <g class="mono" font-size="17">
+    <g clip-path="url(#type1)">
+      <text x="82" y="282" fill="#e2e8f0"><tspan fill="#22d3ee">$</tspan> sha256sum cat.jpg IMG_0042.jpg</text>
+    </g>
+    <g clip-path="url(#type2)">
+      <text x="82" y="316" fill="#94a3b8"><tspan fill="#a78bfa">9f86d081884c7d65…</tspan>  same bytes → stored once</text>
+    </g>
+  </g>
+
+  <!-- ============ right: dedup animation ============ -->
+  <!-- lanes -->
+  <path d="M 650 150 H 845" stroke="#334155" stroke-width="2" fill="none" class="flow"/>
+  <path d="M 650 270 H 845" stroke="#334155" stroke-width="2" fill="none" class="flow"/>
+  <path d="M 875 150 C 935 150 935 210 990 210" stroke="#334155" stroke-width="2" fill="none" class="flow"/>
+  <path d="M 875 270 C 935 270 935 210 990 210" stroke="#334155" stroke-width="2" fill="none" class="flow"/>
+
+  <!-- SHA-256 gate -->
+  <ellipse cx="860" cy="210" rx="70" ry="120" fill="url(#glow)" opacity="0">
+    <animate attributeName="opacity" dur="8s" repeatCount="indefinite"
+      values="0;0;1;0;0;1;0;0" keyTimes="0;0.21;0.25;0.31;0.57;0.61;0.67;1"/>
+  </ellipse>
+  <rect x="845" y="104" width="30" height="212" rx="9" fill="#111827" stroke="#a78bfa" stroke-width="1.5"/>
+  <text transform="translate(865 210) rotate(-90)" text-anchor="middle" class="mono" font-size="13" font-weight="700" letter-spacing="3" fill="#c4b5fd">SHA-256</text>
+
+  <!-- vault -->
+  <rect x="990" y="132" width="172" height="156" rx="14" fill="#0b1426" stroke="#22d3ee" stroke-width="1.5">
+    <animate attributeName="stroke-width" dur="8s" repeatCount="indefinite"
+      values="1.5;1.5;4;1.5;1.5;4;1.5;1.5" keyTimes="0;0.42;0.45;0.5;0.76;0.79;0.84;1"/>
+  </rect>
+  <g transform="translate(1076 170)">
+    <path d="M -15 -6 v -6 a 15 15 0 0 1 30 0 v 6" fill="none" stroke="#22d3ee" stroke-width="3"/>
+    <rect x="-20" y="-7" width="40" height="30" rx="5" fill="#22d3ee"/>
+    <circle cx="0" cy="6" r="4" fill="#0b1426"/>
+  </g>
+  <text x="1076" y="224" text-anchor="middle" class="mono" font-size="12" fill="#94a3b8">objects/9f86d0…</text>
+  <g class="mono" font-size="15" font-weight="700" text-anchor="middle">
+    <text x="1076" y="256" fill="#475569">ref_count —
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="1;1;0;0;1" keyTimes="0;0.43;0.44;0.97;1"/>
+    </text>
+    <text x="1076" y="256" fill="#22d3ee" opacity="0">ref_count 1
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.43;0.44;0.77;0.78;1"/>
+    </text>
+    <text x="1076" y="256" fill="#34d399" opacity="0">ref_count 2
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.77;0.78;0.96;0.97;1"/>
+    </text>
+  </g>
+
+  <!-- status line under the vault -->
+  <g class="sans" font-size="14" text-anchor="middle">
+    <text x="1076" y="320" fill="#22d3ee" opacity="0">new content → PUT to S3
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.44;0.46;0.72;0.75;1"/>
+    </text>
+    <text x="1076" y="320" fill="#34d399" opacity="0">duplicate → upload skipped
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.78;0.80;0.94;0.96;1"/>
+    </text>
+  </g>
+
+  <!-- file A: asha / cat.jpg -->
+  <g opacity="0">
+    <animateTransform attributeName="transform" type="translate" dur="8s" repeatCount="indefinite"
+      values="640 122;640 122;690 122;880 122;1012 182;1012 182;1012 182"
+      keyTimes="0;0.05;0.20;0.30;0.42;0.46;1"/>
+    <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.42;0.46;1"/>
+    <g>
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="1;1;0;0;1" keyTimes="0;0.22;0.25;0.99;1"/>
+      <rect width="156" height="56" rx="10" fill="#111c2e" stroke="#334155"/>
+      <path d="M 14 12 h 16 l 8 8 v 24 h -24 z" fill="#1e293b" stroke="#64748b"/>
+      <text x="48" y="26" class="sans" font-size="15" font-weight="600" fill="#e2e8f0">cat.jpg</text>
+      <text x="48" y="45" class="sans" font-size="12" fill="#94a3b8">asha · 2.4 MB</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.22;0.25;0.99;1"/>
+      <rect y="10" width="128" height="36" rx="18" fill="#1e1b4b" stroke="#a78bfa"/>
+      <text x="64" y="33" text-anchor="middle" class="mono" font-size="13" fill="#c4b5fd"># 9f86d0…</text>
+    </g>
+  </g>
+
+  <!-- file B: ben / IMG_0042.jpg (same bytes) -->
+  <g opacity="0">
+    <animateTransform attributeName="transform" type="translate" dur="8s" repeatCount="indefinite"
+      values="640 242;640 242;640 242;690 242;880 242;1012 182;1012 182;1012 182"
+      keyTimes="0;0.05;0.48;0.56;0.66;0.76;0.80;1"/>
+    <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.76;0.80;1"/>
+    <g>
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="1;1;0;0;1" keyTimes="0;0.58;0.61;0.99;1"/>
+      <rect width="156" height="56" rx="10" fill="#111c2e" stroke="#334155"/>
+      <path d="M 14 12 h 16 l 8 8 v 24 h -24 z" fill="#1e293b" stroke="#64748b"/>
+      <text x="48" y="26" class="sans" font-size="15" font-weight="600" fill="#e2e8f0">IMG_0042.jpg</text>
+      <text x="48" y="45" class="sans" font-size="12" fill="#94a3b8">ben · 2.4 MB</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.58;0.61;0.99;1"/>
+      <rect y="10" width="128" height="36" rx="18" fill="#1e1b4b" stroke="#a78bfa"/>
+      <text x="64" y="33" text-anchor="middle" class="mono" font-size="13" fill="#c4b5fd"># 9f86d0…</text>
+    </g>
+  </g>
+
+  <!-- footer chips -->
+  <g class="mono" font-size="12" fill="#64748b">
+    <text x="64" y="374">Go · Gin · PostgreSQL · Redis · RabbitMQ · S3/MinIO</text>
+    <text x="1136" y="374" text-anchor="end">2 files · 2 names · 1 object</text>
+  </g>
+</svg>
