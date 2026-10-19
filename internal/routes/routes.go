@@ -12,6 +12,7 @@ type Handlers struct {
 	Auth    *handlers.AuthHandler
 	OAuth   *handlers.OAuthHandler
 	Folders *handlers.FolderHandler
+	Files   *handlers.FileHandler
 }
 
 func Setup(r *gin.Engine, h Handlers, jwt *appjwt.Manager) {
@@ -42,5 +43,13 @@ func Setup(r *gin.Engine, h Handlers, jwt *appjwt.Manager) {
 		folders.GET("/:id", h.Folders.ListChildren)
 		folders.PATCH("/:id", h.Folders.Rename)
 		folders.DELETE("/:id", h.Folders.Delete)
+	}
+
+	files := protected.Group("/files")
+	{
+		files.POST("/init-upload", h.Files.InitUpload)
+		files.POST("/confirm", h.Files.Confirm)
+		files.GET("/:id/download", h.Files.Download)
+		files.DELETE("/:id", h.Files.Delete)
 	}
 }
