@@ -79,6 +79,23 @@
 
 **Decisions that mattered most:** opaque refresh + hashing; fail-closed refresh; linking OAuth by email (the risky one).
 
+**Reproduced 2026-10-15** (snapshot `3476121`, real output in [JIT/Phase2.md](JIT/Phase2.md)):
+- The GET/DEL refresh race: one token accepted up to 5 times out of 10 concurrent requests (8 of 150 trials). `GETDEL` → 0 of 150.
+- The worker and publisher don't recover from a broker restart: 0 consumers, every later welcome email lost, `/health` ok.
+- Timing enumeration: unknown email ≈4 ms, known email + wrong password ≈110 ms.
+
+**Found while writing the JIT (2026-10-15), not in the list above:**
+- Logout fails open: `200 logged out` during a Redis outage, and the token still refreshes afterwards.
+- Concurrent signups for one email: 1 × 201 and 9 × 500 (the unique index holds, `23505` isn't mapped to `ErrEmailTaken`).
+- Passwords over 72 bytes → 500 (bcrypt's `ErrPasswordTooLong`); mixed-case emails make separate accounts.
+- No 500 is ever logged: `respondServiceError`'s `default` swallows the error, and there's no request logger.
+- Bindings are two exact keys, but CLAUDE.md says `email.*`, so a new `email.*` event is dropped unrouted. RabbitMQ down at boot is fatal.
+- `fetchGoogleProfile` ignores the HTTP status → a non-200 can create a user with `email = ""` (code read).
+- `oauth_service.go` lacks the `var _` interface check; `GoogleRedirect` also calls `c.JSON` directly; `var _ = time.Second` keeps an unused import alive.
+- The tree didn't build from `48dd729` (06-29) to `1ceae57` (07-22): wiring was committed before what it wired.
+
+**Predictions I got wrong:** none recorded. Phase 2 predates the JIT spec, so there's no `Phase2.predict.md`.
+
 ---
 
 ## Phase 3 — Folders (2026-06-30 → 2026-07-23)
