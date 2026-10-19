@@ -20,7 +20,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+        - "6379:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
@@ -46,6 +46,15 @@ services:
       timeout: 10s
       retries: 5
 
+  redisinsight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/data
+    depends_on:
+      - redis
+
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
@@ -66,5 +75,6 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  redisinsight_data:
   rabbitmq_data:
   minio_data:
