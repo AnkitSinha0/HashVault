@@ -1,0 +1,206 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" width="1200" height="780" role="img" aria-labelledby="title desc">
+  <title id="title">HashVault system architecture</title>
+  <desc id="desc">A client talks JSON to a single Go binary (HTTP layer, handlers, services, adapters). The binary keeps metadata in PostgreSQL, tokens in Redis, publishes events to RabbitMQ and consumes them with an in-process worker. File bytes travel directly between the client and S3 or MinIO through presigned URLs.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#1a2334"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .box  { fill: #111a2b; stroke: #26324a; }
+      .chip { fill: #0d1526; stroke: #2a3954; }
+      .h    { font-size: 15px; font-weight: 700; fill: #e2e8f0; }
+      .s    { font-size: 12px; fill: #94a3b8; }
+      .t    { font-size: 11.5px; fill: #7c8aa3; }
+      .edge { fill: none; stroke-width: 2; stroke-dasharray: 7 7; animation: flow 1.4s linear infinite; }
+      .rev  { animation-direction: reverse; }
+      @keyframes flow { to { stroke-dashoffset: -28; } }
+    </style>
+  </defs>
+
+  <rect width="1200" height="780" rx="18" fill="url(#bg)"/>
+  <rect width="1200" height="780" rx="18" fill="url(#dots)"/>
+  <rect x="0.5" y="0.5" width="1199" height="779" rx="18" fill="none" stroke="#1f2937"/>
+
+  <!-- header -->
+  <text x="40" y="52" class="sans" font-size="22" font-weight="800" fill="#e2e8f0">System architecture</text>
+  <text x="40" y="76" class="sans" font-size="14" fill="#94a3b8">One Go binary runs the control plane. File bytes go straight to object storage.</text>
+
+  <!-- legend -->
+  <g class="sans" font-size="12.5" fill="#94a3b8">
+    <line x1="700" y1="47" x2="728" y2="47" stroke="#22d3ee" stroke-width="3"/><text x="736" y="51">control plane</text>
+    <line x1="838" y1="47" x2="866" y2="47" stroke="#f59e0b" stroke-width="3"/><text x="874" y="51">file bytes</text>
+    <line x1="954" y1="47" x2="982" y2="47" stroke="#60a5fa" stroke-width="3"/><text x="990" y="51">state</text>
+    <line x1="1046" y1="47" x2="1074" y2="47" stroke="#a78bfa" stroke-width="3"/><text x="1082" y="51">async</text>
+  </g>
+
+  <!-- ===================== edges (drawn first, under boxes) ===================== -->
+  <!-- client -> HTTP (control plane) -->
+  <path id="p-ctl" d="M 210 340 H 245 V 218 H 285" class="edge" stroke="#22d3ee"/>
+  <!-- client <-> S3 (presigned URLs) -->
+  <path id="p-data" d="M 125 440 V 700 H 1030 V 627" class="edge" stroke="#f59e0b"/>
+  <!-- adapters -> stores -->
+  <path id="p-pg"    d="M 795 205 H 900" class="edge" stroke="#60a5fa"/>
+  <path id="p-redis" d="M 795 300 H 900" class="edge" stroke="#f87171"/>
+  <path id="p-pub"   d="M 795 405 H 900" class="edge" stroke="#a78bfa"/>
+  <path id="p-sub"   d="M 900 465 H 795" class="edge" stroke="#a78bfa"/>
+  <path id="p-s3"    d="M 795 585 H 900" class="edge" stroke="#34d399"/>
+  <!-- google -->
+  <path d="M 700 138 V 150" class="edge" stroke="#64748b"/>
+
+  <!-- ===================== client ===================== -->
+  <text x="125" y="290" text-anchor="middle" class="sans" font-size="12" fill="#22d3ee">HTTPS · JSON · Bearer JWT</text>
+  <rect x="40" y="300" width="170" height="140" rx="14" class="box"/>
+  <text x="125" y="336" text-anchor="middle" class="sans h">Client</text>
+  <text x="125" y="358" text-anchor="middle" class="sans s">web · CLI · mobile</text>
+  <rect x="62" y="376" width="126" height="44" rx="8" class="chip"/>
+  <text x="125" y="394" text-anchor="middle" class="mono t">hashes locally</text>
+  <text x="125" y="411" text-anchor="middle" class="mono" font-size="12" fill="#c4b5fd">SHA-256</text>
+
+  <!-- ===================== google ===================== -->
+  <rect x="590" y="92" width="220" height="46" rx="10" class="box"/>
+  <text x="700" y="120" text-anchor="middle" class="sans" font-size="14" font-weight="600" fill="#e2e8f0">Google OAuth 2.0</text>
+
+  <!-- ===================== the binary ===================== -->
+  <rect x="260" y="150" width="560" height="482" rx="16" fill="#0c1324" stroke="#334155" stroke-width="1.5"/>
+  <text x="282" y="174" class="mono" font-size="12" fill="#64748b">cmd/api · one process · modular monolith</text>
+
+  <!-- left column: request path -->
+  <rect x="285" y="190" width="270" height="56" rx="10" class="box"/>
+  <text x="300" y="213" class="sans h">HTTP</text>
+  <text x="300" y="234" class="sans s">Gin · server timeouts · graceful drain</text>
+  <rect x="470" y="200" width="74" height="22" rx="11" fill="#0e2a33" stroke="#22d3ee" stroke-opacity="0.6"/>
+  <text x="507" y="215" text-anchor="middle" class="mono" font-size="10.5" fill="#67e8f9">RequireAuth</text>
+
+  <line x1="420" y1="246" x2="420" y2="264" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="285" y="266" width="270" height="56" rx="10" class="box"/>
+  <text x="300" y="289" class="sans h">Handlers</text>
+  <text x="300" y="310" class="sans s">bind DTO → service → {data | error}</text>
+
+  <line x1="420" y1="322" x2="420" y2="340" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="285" y="342" width="270" height="270" rx="10" class="box"/>
+  <text x="300" y="366" class="sans h">Services</text>
+  <g class="sans">
+    <rect x="300" y="378" width="240" height="46" rx="8" class="chip"/>
+    <text x="314" y="397" font-size="13" font-weight="600" fill="#e2e8f0">Auth</text>
+    <text x="314" y="414" class="s">bcrypt · JWT · refresh rotation</text>
+    <rect x="300" y="432" width="240" height="46" rx="8" class="chip"/>
+    <text x="314" y="451" font-size="13" font-weight="600" fill="#e2e8f0">OAuth</text>
+    <text x="314" y="468" class="s">code exchange · CSRF state</text>
+    <rect x="300" y="486" width="240" height="46" rx="8" class="chip"/>
+    <text x="314" y="505" font-size="13" font-weight="600" fill="#e2e8f0">Folders</text>
+    <text x="314" y="522" class="s">tenant-scoped tree</text>
+    <rect x="300" y="540" width="240" height="56" rx="8" class="chip" stroke="#22d3ee" stroke-opacity="0.55"/>
+    <text x="314" y="560" font-size="13" font-weight="600" fill="#e2e8f0">Files</text>
+    <text x="314" y="578" class="s">quota · dedup · ref counting</text>
+  </g>
+
+  <!-- port bus -->
+  <line x1="555" y1="475" x2="570" y2="475" stroke="#475569" stroke-width="2"/>
+  <line x1="570" y1="205" x2="570" y2="585" stroke="#475569" stroke-width="2"/>
+  <g stroke="#475569" stroke-width="2">
+    <line x1="570" y1="205" x2="585" y2="205"/>
+    <line x1="570" y1="300" x2="585" y2="300"/>
+    <line x1="570" y1="405" x2="585" y2="405"/>
+    <line x1="570" y1="585" x2="585" y2="585"/>
+  </g>
+
+  <!-- right column: adapters -->
+  <g class="sans">
+    <rect x="585" y="182" width="210" height="46" rx="9" class="chip"/>
+    <text x="599" y="201" font-size="13" font-weight="600" fill="#e2e8f0">Repositories</text>
+    <text x="599" y="218" class="mono t">GORM · scoped by user_id</text>
+
+    <rect x="585" y="277" width="210" height="46" rx="9" class="chip"/>
+    <text x="599" y="296" font-size="13" font-weight="600" fill="#e2e8f0">Token store</text>
+    <text x="599" y="313" class="mono t">go-redis · SET EX / GET / DEL</text>
+
+    <rect x="585" y="382" width="210" height="46" rx="9" class="chip"/>
+    <text x="599" y="401" font-size="13" font-weight="600" fill="#e2e8f0">Publisher</text>
+    <text x="599" y="418" class="mono t">AMQP · fire-and-forget</text>
+
+    <rect x="585" y="442" width="210" height="46" rx="9" class="chip" stroke="#a78bfa" stroke-opacity="0.6"/>
+    <text x="599" y="461" font-size="13" font-weight="600" fill="#e2e8f0">Email worker</text>
+    <text x="599" y="478" class="mono t">goroutine · prefetch 1 · ack</text>
+
+    <rect x="585" y="562" width="210" height="46" rx="9" class="chip"/>
+    <text x="599" y="581" font-size="13" font-weight="600" fill="#e2e8f0">ObjectStore</text>
+    <text x="599" y="598" class="mono t">S3 SDK · presign locally</text>
+  </g>
+
+  <!-- ===================== backing services ===================== -->
+  <g class="sans">
+    <rect x="900" y="165" width="260" height="80" rx="12" class="box" stroke="#60a5fa" stroke-opacity="0.55"/>
+    <text x="918" y="190" class="h">PostgreSQL 16</text>
+    <text x="918" y="210" class="mono t">users · folders · files</text>
+    <text x="918" y="228" class="mono t">storage_objects (checksum UNIQUE)</text>
+
+    <rect x="900" y="262" width="260" height="76" rx="12" class="box" stroke="#f87171" stroke-opacity="0.55"/>
+    <text x="918" y="287" class="h">Redis 7</text>
+    <text x="918" y="307" class="mono t">refresh_token:{sha256} → user</text>
+    <text x="918" y="325" class="mono t">oauth_state:{state} · TTL</text>
+
+    <rect x="900" y="372" width="260" height="126" rx="12" class="box" stroke="#a78bfa" stroke-opacity="0.55"/>
+    <text x="918" y="397" class="h">RabbitMQ 3.13</text>
+    <text x="918" y="420" class="mono t">exchange hashvault.events</text>
+    <text x="918" y="438" class="mono t">  ├ email.welcome</text>
+    <text x="918" y="456" class="mono t">  └ email.otp</text>
+    <text x="918" y="480" class="mono t">queue hashvault.email (durable)</text>
+
+    <rect x="900" y="545" width="260" height="82" rx="12" class="box" stroke="#34d399" stroke-opacity="0.55"/>
+    <text x="918" y="570" class="h">S3 / MinIO</text>
+    <text x="918" y="590" class="mono t">objects/{sha256}</text>
+    <text x="918" y="608" class="mono t">content-addressed · immutable</text>
+  </g>
+
+  <!-- edge labels -->
+  <g class="sans" font-size="12">
+    <text x="610" y="720" text-anchor="middle" fill="#fbbf24">presigned PUT / GET: file bytes never pass through the API</text>
+    <text x="848" y="198" text-anchor="middle" fill="#93c5fd">SQL</text>
+    <text x="848" y="293" text-anchor="middle" fill="#fca5a5">RESP</text>
+    <text x="848" y="398" text-anchor="middle" fill="#c4b5fd">publish</text>
+    <text x="848" y="482" text-anchor="middle" fill="#c4b5fd">consume</text>
+    <text x="848" y="578" text-anchor="middle" fill="#6ee7b7">delete @0</text>
+    <text x="712" y="164" fill="#94a3b8">userinfo</text>
+  </g>
+
+  <!-- ===================== moving packets ===================== -->
+  <circle r="5" fill="#22d3ee">
+    <animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#p-ctl"/></animateMotion>
+  </circle>
+  <circle r="4" fill="#22d3ee">
+    <animateMotion dur="2.2s" begin="1.1s" repeatCount="indefinite" path="M 420 246 V 266 M 420 322 V 342"/>
+  </circle>
+  <circle r="5" fill="#f59e0b">
+    <animateMotion dur="5s" repeatCount="indefinite"><mpath href="#p-data"/></animateMotion>
+  </circle>
+  <circle r="5" fill="#fbbf24">
+    <animateMotion dur="5s" begin="2.5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p-data"/></animateMotion>
+  </circle>
+  <circle r="4.5" fill="#60a5fa">
+    <animateMotion dur="2s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#p-pg"/></animateMotion>
+  </circle>
+  <circle r="4.5" fill="#f87171">
+    <animateMotion dur="2.6s" begin="0.7s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#p-redis"/></animateMotion>
+  </circle>
+  <circle r="4.5" fill="#a78bfa">
+    <animateMotion dur="2.4s" repeatCount="indefinite"><mpath href="#p-pub"/></animateMotion>
+  </circle>
+  <circle r="4.5" fill="#a78bfa">
+    <animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#p-sub"/></animateMotion>
+  </circle>
+  <circle r="4.5" fill="#34d399">
+    <animateMotion dur="3.2s" begin="0.4s" repeatCount="indefinite"><mpath href="#p-s3"/></animateMotion>
+  </circle>
+
+  <!-- footnote -->
+  <text x="40" y="756" class="sans" font-size="12" fill="#64748b">Presigned URLs are signed inside the API (no network call). The API itself talks to S3 only to create the bucket at boot and to delete an object when its ref_count reaches 0.</text>
+</svg>
