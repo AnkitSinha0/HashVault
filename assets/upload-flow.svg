@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 960" width="1200" height="960" role="img" aria-labelledby="title desc">
+  <title id="title">Upload with deduplication</title>
+  <desc id="desc">Sequence diagram, animated twice: once for a file whose bytes are already stored (init-upload answers deduplicated and nothing is uploaded) and once for new content (presigned PUT straight to S3). Both end with POST /files/confirm, which creates the storage object or increments its ref_count, inserts the file row and adds to used_storage.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#1a2334"/>
+    </pattern>
+    <marker id="m22d3ee" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee"/></marker>
+    <marker id="mf59e0b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/></marker>
+    <marker id="m60a5fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#60a5fa"/></marker>
+    <marker id="mf87171" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f87171"/></marker>
+    <marker id="ma78bfa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/></marker>
+    <marker id="m34d399" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399"/></marker>
+    <marker id="m94a3b8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
+    <marker id="m64748b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .box  { fill: #111a2b; stroke: #26324a; }
+      .chip { fill: #0d1526; stroke: #2a3954; }
+      .h    { font-size: 15px; font-weight: 700; fill: #e2e8f0; }
+      .s    { font-size: 12px; fill: #94a3b8; }
+      .t    { font-size: 11.5px; fill: #7c8aa3; }
+      .edge { fill: none; stroke-width: 2; stroke-dasharray: 7 7; animation: flow 1.4s linear infinite; }
+      .rev  { animation-direction: reverse; }
+      @keyframes flow { to { stroke-dashoffset: -28; } }
+    </style>
+  </defs>
+
+  <rect width="1200" height="960" rx="18" fill="url(#bg)"/>
+  <rect width="1200" height="960" rx="18" fill="url(#dots)"/>
+  <rect x="0.5" y="0.5" width="1199" height="959" rx="18" fill="none" stroke="#1f2937"/>
+  <text x="40" y="52" class="sans" font-size="22" font-weight="800" fill="#e2e8f0">Upload with deduplication</text>
+  <text x="40" y="76" class="sans" font-size="14" fill="#94a3b8">The client hashes first, so a duplicate costs one round trip and zero bytes.</text>
+  <g class="sans" font-size="12.5" fill="#94a3b8">
+    <line x1="1081.625" y1="47" x2="1109.625" y2="47" stroke="#60a5fa" stroke-width="3"/><text x="1117.625" y="51">state</text>
+    <line x1="968.875" y1="47" x2="996.875" y2="47" stroke="#f59e0b" stroke-width="3"/><text x="1004.875" y="51">file bytes</text>
+    <line x1="835.5" y1="47" x2="863.5" y2="47" stroke="#22d3ee" stroke-width="3"/><text x="871.5" y="51">control plane</text>
+  </g>
+  <line x1="150" y1="144" x2="150" y2="904" stroke="#26324a" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <line x1="480" y1="144" x2="480" y2="904" stroke="#26324a" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <line x1="800" y1="144" x2="800" y2="904" stroke="#26324a" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <line x1="1070" y1="144" x2="1070" y2="904" stroke="#26324a" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <g class="sans">
+    <rect x="60" y="364" width="1100" height="352" rx="10" fill="none" stroke="#334155" stroke-width="1.5"/>
+    <path d="M 60 374 a 10 10 0 0 1 10 -10 H 128 V 380 l -8 8 H 60 Z" fill="#1e293b"/>
+    <text x="72" y="381" class="mono" font-size="12" font-weight="700" fill="#e2e8f0">alt</text>
+    <text x="142" y="381" class="mono" font-size="12" fill="#cbd5e1">[bytes already stored]</text>
+    <line x1="60" y1="480" x2="1160" y2="480" stroke="#334155" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <text x="72" y="498" class="mono" font-size="12" fill="#cbd5e1">[new content]</text>
+    <rect x="61" y="365" width="1098" height="114" rx="9" fill="#34d399" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0113;0.0226;0.3962;0.4075;1" values="0;0;0.05;0.05;0;0"/></rect>
+    <rect x="61" y="481" width="1098" height="234" rx="9" fill="#f59e0b" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.4377;0.4491;0.9472;0.9585;1" values="0;0;0.05;0.05;0;0"/></rect>
+    <rect x="300" y="438" width="600" height="28" rx="6" fill="#132a24" stroke="#34d399" stroke-opacity="0.5"/>
+    <text x="600" y="457" text-anchor="middle" font-size="12.5" fill="#6ee7b7">duplicate: no upload at all, zero bytes move</text>
+  </g>
+  <g class="sans" font-size="13" font-weight="700">
+    <text x="1160" y="84" text-anchor="end" fill="#6ee7b7" opacity="0">playing: second upload of the same bytes<animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0132;0.0226;0.3962;0.4057;1" values="0;0;1;1;0;0"/></text>
+    <text x="1160" y="84" text-anchor="end" fill="#fbbf24" opacity="0">playing: first upload of new content<animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.4396;0.4491;0.9472;0.9566;1" values="0;0;1;1;0;0"/></text>
+  </g>
+  <rect x="75" y="100" width="150" height="44" rx="10" class="box" stroke="#22d3ee" stroke-opacity="0.6"/>
+  <text x="150" y="127" text-anchor="middle" class="sans" font-size="14" font-weight="700" fill="#e2e8f0">Client</text>
+  <rect x="405" y="100" width="150" height="44" rx="10" class="box" stroke="#22d3ee" stroke-opacity="0.6"/>
+  <text x="480" y="127" text-anchor="middle" class="sans" font-size="14" font-weight="700" fill="#e2e8f0">HashVault API</text>
+  <rect x="725" y="100" width="150" height="44" rx="10" class="box" stroke="#60a5fa" stroke-opacity="0.6"/>
+  <text x="800" y="127" text-anchor="middle" class="sans" font-size="14" font-weight="700" fill="#e2e8f0">PostgreSQL</text>
+  <rect x="995" y="100" width="150" height="44" rx="10" class="box" stroke="#34d399" stroke-opacity="0.6"/>
+  <text x="1070" y="127" text-anchor="middle" class="sans" font-size="14" font-weight="700" fill="#e2e8f0">S3 / MinIO</text>
+  <!-- step 1 -->
+  <g>
+    <rect x="24" y="156" width="1152" height="40" rx="8" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0181;0.0226;0.0547;0.0592;0.4445;0.4491;0.4811;0.4857;1" values="0;0;0.09;0.09;0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 150 174 H 194 V 192 H 154" fill="none" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#m22d3ee)"/>
+    <rect x="199" y="173.5" width="140.27" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="206" y="187" text-anchor="start" class="mono" font-size="11.5" fill="#67e8f9">sha256(file), size</text>
+    <circle cx="128" cy="182" r="10" fill="#0d1526" stroke="#22d3ee" stroke-opacity="0.7"/>
+    <circle cx="128" cy="182" r="10" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0181;0.0226;0.0547;0.0592;0.4445;0.4491;0.4811;0.4857;1" values="0;0;0.9;0.9;0;0;0.9;0.9;0;0"/></circle>
+    <text x="128" y="186" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">1</text>
+    <circle r="5.5" fill="#67e8f9" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0196;0.0226;0.0547;0.0577;0.446;0.4491;0.4811;0.4842;1" values="0;0;1;1;0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0226;0.0547;0.06;0.0604;0.4491;0.4811;0.4864;0.4868;1" keyPoints="0;0;1;1;0;0;1;1;0;0" path="M 150 174 H 194 V 192 H 154"/></circle>
+  </g>
+  <!-- step 2 -->
+  <g>
+    <rect x="24" y="214" width="1152" height="34" rx="8" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0596;0.0642;0.0962;0.1008;0.486;0.4906;0.5226;0.5272;1" values="0;0;0.09;0.09;0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 154 240 H 476" fill="none" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#m22d3ee)"/>
+    <rect x="146.655" y="217.5" width="336.69" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="315" y="231" text-anchor="middle" class="mono" font-size="11.5" fill="#67e8f9">POST /files/init-upload {name, size, checksum}</text>
+    <circle cx="128" cy="240" r="10" fill="#0d1526" stroke="#22d3ee" stroke-opacity="0.7"/>
+    <circle cx="128" cy="240" r="10" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0596;0.0642;0.0962;0.1008;0.486;0.4906;0.5226;0.5272;1" values="0;0;0.9;0.9;0;0;0.9;0.9;0;0"/></circle>
+    <text x="128" y="244" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">2</text>
+    <circle r="5.5" fill="#67e8f9" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0611;0.0642;0.0962;0.0992;0.4875;0.4906;0.5226;0.5257;1" values="0;0;1;1;0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0642;0.0962;0.1015;0.1019;0.4906;0.5226;0.5279;0.5283;1" keyPoints="0;0;1;1;0;0;1;1;0;0" path="M 154 240 H 476"/></circle>
+  </g>
+  <!-- step 3 -->
+  <g>
+    <rect x="24" y="262" width="1152" height="34" rx="8" fill="#60a5fa" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1011;0.1057;0.1377;0.1423;0.5275;0.5321;0.5642;0.5687;1" values="0;0;0.09;0.09;0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 484 288 H 796" fill="none" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#m60a5fa)"/>
+    <rect x="517.2525" y="265.5" width="245.495" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="640" y="279" text-anchor="middle" class="mono" font-size="11.5" fill="#93c5fd">folder owned by caller? quota OK?</text>
+    <circle cx="458" cy="288" r="10" fill="#0d1526" stroke="#60a5fa" stroke-opacity="0.7"/>
+    <circle cx="458" cy="288" r="10" fill="#60a5fa" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1011;0.1057;0.1377;0.1423;0.5275;0.5321;0.5642;0.5687;1" values="0;0;0.9;0.9;0;0;0.9;0.9;0;0"/></circle>
+    <text x="458" y="292" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">3</text>
+    <circle r="5.5" fill="#93c5fd" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1026;0.1057;0.1377;0.1408;0.5291;0.5321;0.5642;0.5672;1" values="0;0;1;1;0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1057;0.1377;0.143;0.1434;0.5321;0.5642;0.5694;0.5698;1" keyPoints="0;0;1;1;0;0;1;1;0;0" path="M 484 288 H 796"/></circle>
+  </g>
+  <!-- step 4 -->
+  <g>
+    <rect x="24" y="310" width="1152" height="34" rx="8" fill="#60a5fa" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1426;0.1472;0.1792;0.1838;0.5691;0.5736;0.6057;0.6102;1" values="0;0;0.09;0.09;0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 484 336 H 796" fill="none" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#m60a5fa)"/>
+    <rect x="489.1925" y="313.5" width="301.615" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="640" y="327" text-anchor="middle" class="mono" font-size="11.5" fill="#93c5fd">SELECT storage_objects WHERE checksum = ?</text>
+    <circle cx="458" cy="336" r="10" fill="#0d1526" stroke="#60a5fa" stroke-opacity="0.7"/>
+    <circle cx="458" cy="336" r="10" fill="#60a5fa" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1426;0.1472;0.1792;0.1838;0.5691;0.5736;0.6057;0.6102;1" values="0;0;0.9;0.9;0;0;0.9;0.9;0;0"/></circle>
+    <text x="458" y="340" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">4</text>
+    <circle r="5.5" fill="#93c5fd" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1442;0.1472;0.1792;0.1823;0.5706;0.5736;0.6057;0.6087;1" values="0;0;1;1;0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1472;0.1792;0.1845;0.1849;0.5736;0.6057;0.6109;0.6113;1" keyPoints="0;0;1;1;0;0;1;1;0;0" path="M 484 336 H 796"/></circle>
+  </g>
+  <!-- step 5 -->
+  <g>
+    <rect x="24" y="394" width="1152" height="34" rx="8" fill="#34d399" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1842;0.1887;0.2208;0.2253;1" values="0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 476 420 H 154" fill="none" stroke="#34d399" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#m34d399)"/>
+    <rect x="223.82" y="397.5" width="182.36" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="315" y="411" text-anchor="middle" class="mono" font-size="11.5" fill="#6ee7b7">200 {deduplicated: true}</text>
+    <circle cx="502" cy="420" r="10" fill="#0d1526" stroke="#34d399" stroke-opacity="0.7"/>
+    <circle cx="502" cy="420" r="10" fill="#34d399" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1842;0.1887;0.2208;0.2253;1" values="0;0;0.9;0.9;0;0"/></circle>
+    <text x="502" y="424" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">5</text>
+    <circle r="5.5" fill="#6ee7b7" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1857;0.1887;0.2208;0.2238;1" values="0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1887;0.2208;0.226;0.2264;1" keyPoints="0;0;1;1;0;0" path="M 476 420 H 154"/></circle>
+  </g>
+  <!-- step 6 -->
+  <g>
+    <rect x="24" y="504" width="1152" height="40" rx="8" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6106;0.6151;0.6472;0.6517;1" values="0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 480 522 H 524 V 540 H 484" fill="none" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#m22d3ee)"/>
+    <rect x="529" y="521.5" width="378.78" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="536" y="535" text-anchor="start" class="mono" font-size="11.5" fill="#67e8f9">presign PUT objects/{sha256} (15 min, local signing)</text>
+    <circle cx="458" cy="530" r="10" fill="#0d1526" stroke="#22d3ee" stroke-opacity="0.7"/>
+    <circle cx="458" cy="530" r="10" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6106;0.6151;0.6472;0.6517;1" values="0;0;0.9;0.9;0;0"/></circle>
+    <text x="458" y="534" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">6</text>
+    <circle r="5.5" fill="#67e8f9" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6121;0.6151;0.6472;0.6502;1" values="0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6151;0.6472;0.6525;0.6528;1" keyPoints="0;0;1;1;0;0" path="M 480 522 H 524 V 540 H 484"/></circle>
+  </g>
+  <!-- step 7 -->
+  <g>
+    <rect x="24" y="566" width="1152" height="34" rx="8" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6521;0.6566;0.6887;0.6932;1" values="0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 476 592 H 154" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#m22d3ee)"/>
+    <rect x="251.88" y="569.5" width="126.24" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="315" y="583" text-anchor="middle" class="mono" font-size="11.5" fill="#67e8f9">200 {upload_url}</text>
+    <circle cx="502" cy="592" r="10" fill="#0d1526" stroke="#22d3ee" stroke-opacity="0.7"/>
+    <circle cx="502" cy="592" r="10" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6521;0.6566;0.6887;0.6932;1" values="0;0;0.9;0.9;0;0"/></circle>
+    <text x="502" y="596" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">7</text>
+    <circle r="5.5" fill="#67e8f9" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6536;0.6566;0.6887;0.6917;1" values="0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6566;0.6887;0.694;0.6943;1" keyPoints="0;0;1;1;0;0" path="M 476 592 H 154"/></circle>
+  </g>
+  <!-- step 8 -->
+  <g>
+    <rect x="24" y="614" width="1152" height="34" rx="8" fill="#f59e0b" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6936;0.6981;0.7302;0.7347;1" values="0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 154 640 H 1066" fill="none" stroke="#f59e0b" stroke-width="1.8" marker-end="url(#mf59e0b)"/>
+    <rect x="452.1775" y="617.5" width="315.645" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="610" y="631" text-anchor="middle" class="mono" font-size="11.5" fill="#fbbf24">PUT bytes (direct, the API never sees them)</text>
+    <circle cx="128" cy="640" r="10" fill="#0d1526" stroke="#f59e0b" stroke-opacity="0.7"/>
+    <circle cx="128" cy="640" r="10" fill="#f59e0b" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6936;0.6981;0.7302;0.7347;1" values="0;0;0.9;0.9;0;0"/></circle>
+    <text x="128" y="644" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">8</text>
+    <circle r="5.5" fill="#fbbf24" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6951;0.6981;0.7302;0.7332;1" values="0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6981;0.7302;0.7355;0.7358;1" keyPoints="0;0;1;1;0;0" path="M 154 640 H 1066"/></circle>
+  </g>
+  <!-- step 9 -->
+  <g>
+    <rect x="24" y="662" width="1152" height="34" rx="8" fill="#f59e0b" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.7351;0.7396;0.7717;0.7762;1" values="0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 1066 688 H 154" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#mf59e0b)"/>
+    <rect x="592.4775" y="665.5" width="35.045" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="610" y="679" text-anchor="middle" class="mono" font-size="11.5" fill="#fbbf24">200</text>
+    <circle cx="1092" cy="688" r="10" fill="#0d1526" stroke="#f59e0b" stroke-opacity="0.7"/>
+    <circle cx="1092" cy="688" r="10" fill="#f59e0b" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.7351;0.7396;0.7717;0.7762;1" values="0;0;0.9;0.9;0;0"/></circle>
+    <text x="1092" y="692" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">9</text>
+    <circle r="5.5" fill="#fbbf24" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.7366;0.7396;0.7717;0.7747;1" values="0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.7396;0.7717;0.777;0.7774;1" keyPoints="0;0;1;1;0;0" path="M 1066 688 H 154"/></circle>
+  </g>
+  <!-- step 10 -->
+  <g>
+    <rect x="24" y="734" width="1152" height="34" rx="8" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2257;0.2302;0.2623;0.2668;0.7766;0.7811;0.8132;0.8177;1" values="0;0;0.09;0.09;0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 154 760 H 476" fill="none" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#m22d3ee)"/>
+    <rect x="160.685" y="737.5" width="308.63" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="315" y="751" text-anchor="middle" class="mono" font-size="11.5" fill="#67e8f9">POST /files/confirm {name, size, checksum}</text>
+    <circle cx="128" cy="760" r="10" fill="#0d1526" stroke="#22d3ee" stroke-opacity="0.7"/>
+    <circle cx="128" cy="760" r="10" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2257;0.2302;0.2623;0.2668;0.7766;0.7811;0.8132;0.8177;1" values="0;0;0.9;0.9;0;0;0.9;0.9;0;0"/></circle>
+    <text x="128" y="764" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">10</text>
+    <circle r="5.5" fill="#67e8f9" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2272;0.2302;0.2623;0.2653;0.7781;0.7811;0.8132;0.8162;1" values="0;0;1;1;0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2302;0.2623;0.2675;0.2679;0.7811;0.8132;0.8185;0.8189;1" keyPoints="0;0;1;1;0;0;1;1;0;0" path="M 154 760 H 476"/></circle>
+  </g>
+  <!-- step 11 -->
+  <g>
+    <rect x="24" y="782" width="1152" height="34" rx="8" fill="#60a5fa" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2672;0.2717;0.3038;0.3083;0.8181;0.8226;0.8547;0.8592;1" values="0;0;0.09;0.09;0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 484 808 H 796" fill="none" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#m60a5fa)"/>
+    <rect x="489.1925" y="785.5" width="301.615" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="640" y="799" text-anchor="middle" class="mono" font-size="11.5" fill="#93c5fd">new object (ref_count 1) or ref_count + 1</text>
+    <circle cx="458" cy="808" r="10" fill="#0d1526" stroke="#60a5fa" stroke-opacity="0.7"/>
+    <circle cx="458" cy="808" r="10" fill="#60a5fa" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2672;0.2717;0.3038;0.3083;0.8181;0.8226;0.8547;0.8592;1" values="0;0;0.9;0.9;0;0;0.9;0.9;0;0"/></circle>
+    <text x="458" y="812" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">11</text>
+    <circle r="5.5" fill="#93c5fd" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2687;0.2717;0.3038;0.3068;0.8196;0.8226;0.8547;0.8577;1" values="0;0;1;1;0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2717;0.3038;0.3091;0.3094;0.8226;0.8547;0.86;0.8604;1" keyPoints="0;0;1;1;0;0;1;1;0;0" path="M 484 808 H 796"/></circle>
+  </g>
+  <!-- step 12 -->
+  <g>
+    <rect x="24" y="830" width="1152" height="34" rx="8" fill="#60a5fa" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3087;0.3132;0.3453;0.3498;0.8596;0.8642;0.8962;0.9008;1" values="0;0;0.09;0.09;0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 484 856 H 796" fill="none" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#m60a5fa)"/>
+    <rect x="510.2375" y="833.5" width="259.525" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="640" y="847" text-anchor="middle" class="mono" font-size="11.5" fill="#93c5fd">INSERT files · used_storage += size</text>
+    <circle cx="458" cy="856" r="10" fill="#0d1526" stroke="#60a5fa" stroke-opacity="0.7"/>
+    <circle cx="458" cy="856" r="10" fill="#60a5fa" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3087;0.3132;0.3453;0.3498;0.8596;0.8642;0.8962;0.9008;1" values="0;0;0.9;0.9;0;0;0.9;0.9;0;0"/></circle>
+    <text x="458" y="860" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">12</text>
+    <circle r="5.5" fill="#93c5fd" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3102;0.3132;0.3453;0.3483;0.8611;0.8642;0.8962;0.8992;1" values="0;0;1;1;0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3132;0.3453;0.3506;0.3509;0.8642;0.8962;0.9015;0.9019;1" keyPoints="0;0;1;1;0;0;1;1;0;0" path="M 484 856 H 796"/></circle>
+  </g>
+  <!-- step 13 -->
+  <g>
+    <rect x="24" y="878" width="1152" height="34" rx="8" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3502;0.3547;0.3868;0.3913;0.9011;0.9057;0.9377;0.9423;1" values="0;0;0.09;0.09;0;0;0.09;0.09;0;0"/></rect>
+    <path d="M 476 904 H 154" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#m22d3ee)"/>
+    <rect x="272.925" y="881.5" width="84.15" height="19.5" rx="5" fill="#0c1324"/>
+    <text x="315" y="895" text-anchor="middle" class="mono" font-size="11.5" fill="#67e8f9">201 {file}</text>
+    <circle cx="502" cy="904" r="10" fill="#0d1526" stroke="#22d3ee" stroke-opacity="0.7"/>
+    <circle cx="502" cy="904" r="10" fill="#22d3ee" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3502;0.3547;0.3868;0.3913;0.9011;0.9057;0.9377;0.9423;1" values="0;0;0.9;0.9;0;0;0.9;0.9;0;0"/></circle>
+    <text x="502" y="908" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#e2e8f0">13</text>
+    <circle r="5.5" fill="#67e8f9" opacity="0"><animate attributeName="opacity" dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3517;0.3547;0.3868;0.3898;0.9026;0.9057;0.9377;0.9408;1" values="0;0;1;1;0;0;1;1;0;0"/><animateMotion dur="26.5s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3547;0.3868;0.3921;0.3925;0.9057;0.9377;0.943;0.9434;1" keyPoints="0;0;1;1;0;0;1;1;0;0" path="M 476 904 H 154"/></circle>
+  </g>
+  <text x="40" y="936" class="sans" font-size="12" fill="#64748b">Both runs end in the same confirm. A duplicate only bumps ref_count; new content is PUT straight to object storage first.</text>
+</svg>

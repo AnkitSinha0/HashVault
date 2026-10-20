@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400" role="img" aria-labelledby="title desc">
+  <title id="title">Layered request path</title>
+  <desc id="desc">A request passes HTTP (Gin and middleware), then handlers, services and adapters (repositories, object store, publisher), each reached only through an interface, before touching Postgres, S3 or RabbitMQ. The response travels back up the same way.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#1a2334"/>
+    </pattern>
+    <marker id="m22d3ee" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee"/></marker>
+    <marker id="mf59e0b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/></marker>
+    <marker id="m60a5fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#60a5fa"/></marker>
+    <marker id="mf87171" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f87171"/></marker>
+    <marker id="ma78bfa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/></marker>
+    <marker id="m34d399" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399"/></marker>
+    <marker id="m94a3b8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
+    <marker id="m64748b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .box  { fill: #111a2b; stroke: #26324a; }
+      .chip { fill: #0d1526; stroke: #2a3954; }
+      .h    { font-size: 15px; font-weight: 700; fill: #e2e8f0; }
+      .s    { font-size: 12px; fill: #94a3b8; }
+      .t    { font-size: 11.5px; fill: #7c8aa3; }
+      .edge { fill: none; stroke-width: 2; stroke-dasharray: 7 7; animation: flow 1.4s linear infinite; }
+      .rev  { animation-direction: reverse; }
+      @keyframes flow { to { stroke-dashoffset: -28; } }
+    </style>
+  </defs>
+
+  <rect width="1200" height="400" rx="18" fill="url(#bg)"/>
+  <rect width="1200" height="400" rx="18" fill="url(#dots)"/>
+  <rect x="0.5" y="0.5" width="1199" height="399" rx="18" fill="none" stroke="#1f2937"/>
+  <text x="40" y="52" class="sans" font-size="22" font-weight="800" fill="#e2e8f0">Inside the binary</text>
+  <text x="40" y="76" class="sans" font-size="14" fill="#94a3b8">Each layer talks to the one below only through an interface.</text>
+  <line x1="219" y1="206" x2="265" y2="206" stroke="#64748b" stroke-width="1.6" marker-end="url(#m64748b)"/>
+  <line x1="267" y1="234" x2="221" y2="234" stroke="#334155" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#m64748b)"/>
+  <text x="243" y="306" text-anchor="middle" class="mono" font-size="10.5" fill="#64748b">routes</text>
+  <line x1="457" y1="206" x2="503" y2="206" stroke="#64748b" stroke-width="1.6" marker-end="url(#m64748b)"/>
+  <line x1="505" y1="234" x2="459" y2="234" stroke="#334155" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#m64748b)"/>
+  <text x="481" y="306" text-anchor="middle" class="mono" font-size="10.5" fill="#64748b">interface</text>
+  <line x1="695" y1="206" x2="741" y2="206" stroke="#64748b" stroke-width="1.6" marker-end="url(#m64748b)"/>
+  <line x1="743" y1="234" x2="697" y2="234" stroke="#334155" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#m64748b)"/>
+  <text x="719" y="306" text-anchor="middle" class="mono" font-size="10.5" fill="#64748b">interface</text>
+  <line x1="933" y1="206" x2="979" y2="206" stroke="#64748b" stroke-width="1.6" marker-end="url(#m64748b)"/>
+  <line x1="981" y1="234" x2="935" y2="234" stroke="#334155" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#m64748b)"/>
+  <text x="957" y="306" text-anchor="middle" class="mono" font-size="10.5" fill="#64748b">driver</text>
+  <circle r="6" fill="#67e8f9" opacity="0"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0286;0.0429;0.4714;0.4857;1" values="0;0;1;1;0;0"/><animateMotion dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.0429;0.4714;0.4914;0.4929;1" keyPoints="0;0;1;1;0;0" path="M 19 206 H 1076"/></circle>
+  <circle r="5" fill="#6ee7b7" opacity="0"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.5;0.5143;0.9429;0.9571;1" values="0;0;1;1;0;0"/><animateMotion dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.5143;0.9429;0.9629;0.9643;1" keyPoints="0;0;1;1;0;0" path="M 1076 234 H 19"/></circle>
+  <rect x="29" y="160" width="190" height="120" rx="12" class="box"/>
+  <rect x="29" y="160" width="190" height="120" rx="12" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="2" opacity="0"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.04;0.0571;0.1429;0.16;0.8114;0.8286;0.9143;0.9314;1" values="0;0;1;1;0;0;1;1;0;0"/></rect>
+  <text x="45" y="190" class="sans h">HTTP</text>
+  <text x="45" y="210" class="mono t">Gin · middleware</text>
+  <text x="45" y="242" class="sans s">transport only</text>
+  <rect x="267" y="160" width="190" height="120" rx="12" class="box"/>
+  <rect x="267" y="160" width="190" height="120" rx="12" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="2" opacity="0"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1186;0.1357;0.2214;0.2386;0.7329;0.75;0.8357;0.8529;1" values="0;0;1;1;0;0;1;1;0;0"/></rect>
+  <text x="283" y="190" class="sans h">Handlers</text>
+  <text x="283" y="210" class="mono t">internal/handlers</text>
+  <text x="283" y="242" class="sans s">bind DTO, respond</text>
+  <text x="283" y="260" class="sans s">{data} / {error}</text>
+  <rect x="505" y="160" width="190" height="120" rx="12" class="box"/>
+  <rect x="505" y="160" width="190" height="120" rx="12" fill="#a78bfa" fill-opacity="0.08" stroke="#a78bfa" stroke-width="2" opacity="0"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.1971;0.2143;0.3;0.3171;0.6543;0.6714;0.7571;0.7743;1" values="0;0;1;1;0;0;1;1;0;0"/></rect>
+  <text x="521" y="190" class="sans h">Services</text>
+  <text x="521" y="210" class="mono t">internal/services</text>
+  <text x="521" y="242" class="sans s">business rules</text>
+  <text x="521" y="260" class="sans s">sentinel errors</text>
+  <rect x="743" y="160" width="190" height="120" rx="12" class="box"/>
+  <rect x="743" y="160" width="190" height="120" rx="12" fill="#60a5fa" fill-opacity="0.08" stroke="#60a5fa" stroke-width="2" opacity="0"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.2757;0.2929;0.3786;0.3957;0.5757;0.5929;0.6786;0.6957;1" values="0;0;1;1;0;0;1;1;0;0"/></rect>
+  <text x="759" y="190" class="sans h">Adapters</text>
+  <text x="759" y="210" class="mono t">repos · store · publisher</text>
+  <text x="759" y="242" class="sans s">persistence only;</text>
+  <text x="759" y="260" class="sans s">translate driver errors</text>
+  <rect x="981" y="160" width="190" height="120" rx="12" class="box"/>
+  <rect x="981" y="160" width="190" height="120" rx="12" fill="none" stroke="#e2e8f0" stroke-opacity="0.6" stroke-width="2" opacity="0"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3543;0.3714;0.4571;0.4743;0.4971;0.5143;0.6;0.6171;1" values="0;0;1;1;0;0;1;1;0;0"/></rect>
+  <rect x="993" y="172" width="166" height="28" rx="7" class="chip" stroke="#60a5fa" stroke-opacity="0.55"/>
+  <text x="1005" y="191" class="sans" font-size="13" font-weight="600" fill="#e2e8f0">PostgreSQL</text>
+  <circle cx="1145" cy="186" r="4" fill="#60a5fa" opacity="0.3"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3543;0.3714;0.4571;0.4743;0.4971;0.5143;0.6;0.6171;1" values="0.3;0.3;1;1;0.3;0.3;1;1;0.3;0.3"/></circle>
+  <rect x="993" y="207" width="166" height="28" rx="7" class="chip" stroke="#34d399" stroke-opacity="0.55"/>
+  <text x="1005" y="226" class="sans" font-size="13" font-weight="600" fill="#e2e8f0">S3 / MinIO</text>
+  <circle cx="1145" cy="221" r="4" fill="#34d399" opacity="0.3"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3543;0.3714;0.4571;0.4743;0.4971;0.5143;0.6;0.6171;1" values="0.3;0.3;1;1;0.3;0.3;1;1;0.3;0.3"/></circle>
+  <rect x="993" y="242" width="166" height="28" rx="7" class="chip" stroke="#a78bfa" stroke-opacity="0.55"/>
+  <text x="1005" y="261" class="sans" font-size="13" font-weight="600" fill="#e2e8f0">RabbitMQ</text>
+  <circle cx="1145" cy="256" r="4" fill="#a78bfa" opacity="0.3"><animate attributeName="opacity" dur="7s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.3543;0.3714;0.4571;0.4743;0.4971;0.5143;0.6;0.6171;1" values="0.3;0.3;1;1;0.3;0.3;1;1;0.3;0.3"/></circle>
+  <g class="sans" font-size="12.5" fill="#94a3b8">
+    <circle cx="790" cy="47" r="5" fill="#67e8f9"/><text x="802" y="51">request (depends downward)</text>
+    <circle cx="990" cy="47" r="5" fill="#6ee7b7"/><text x="1002" y="51">result or error</text>
+  </g>
+  <text x="40" y="374" class="sans" font-size="12" fill="#64748b">Implementations are unexported and returned as their interface, so a drifting implementation is a compile error.</text>
+</svg>
