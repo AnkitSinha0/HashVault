@@ -17,19 +17,19 @@
 <h3>A Dropbox-style storage backend where identical bytes are stored once.</h3>
 
 <p>
-<a href="#-architecture">Architecture</a> ·
-<a href="#-how-it-works">How it works</a> ·
-<a href="#-quickstart">Quickstart</a> ·
-<a href="#-api">API</a> ·
-<a href="#-engineering-decisions">Decisions</a> ·
-<a href="#-status--roadmap">Roadmap</a>
+<a href="#architecture">Architecture</a> ·
+<a href="#how-it-works">How it works</a> ·
+<a href="#quickstart">Quickstart</a> ·
+<a href="#api">API</a> ·
+<a href="#engineering-decisions">Decisions</a> ·
+<a href="#status--roadmap">Roadmap</a>
 </p>
 
 </div>
 
 ---
 
-## ✦ What is HashVault?
+## What is HashVault?
 
 HashVault is the backend of a cloud drive: accounts, folders, files, uploads and downloads. It's written in Go as a **modular monolith**, a single binary with hard internal boundaries, and it's designed around two ideas:
 
@@ -39,19 +39,19 @@ HashVault is the backend of a cloud drive: accounts, folders, files, uploads and
 Around that core are the parts a real service needs: JWT auth with rotating refresh tokens, Google sign-in, tenant-scoped queries, per-user quotas, async email over RabbitMQ, and graceful shutdown.
 
 > [!NOTE]
-> This is a learning-in-public portfolio project, built phase by phase. Every non-obvious choice is written down in [`Decisions.md`](Decisions.md), and every phase has an honest retro in [`retro.md`](retro.md), including the bugs. The [known issues](#-status--roadmap) section below is deliberately not hidden.
+> This is a learning-in-public portfolio project, built phase by phase. Every non-obvious choice is written down in [`Decisions.md`](Decisions.md), and every phase has an honest retro in [`retro.md`](retro.md), including the bugs. The [known issues](#status--roadmap) section below is deliberately not hidden.
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-**🧬 Content-addressed dedup**<br/>
+**Content-addressed dedup**<br/>
 SHA-256 as identity, a `UNIQUE` index on the checksum, and reference counting decide when bytes can be deleted.
 
 </td>
 <td width="50%" valign="top">
 
-**🚀 Zero-copy uploads**<br/>
+**Zero-copy uploads**<br/>
 Presigned S3 `PUT`/`GET` URLs (15 min). Bytes go client ↔ object storage; the API stays on the control plane.
 
 </td>
@@ -59,13 +59,13 @@ Presigned S3 `PUT`/`GET` URLs (15 min). Bytes go client ↔ object storage; the 
 <tr>
 <td valign="top">
 
-**🔐 Token design**<br/>
+**Token design**<br/>
 15-min HS256 access JWT, checked with no lookup. The opaque refresh token is stored only as `sha256(token)` in Redis and rotated on every use.
 
 </td>
 <td valign="top">
 
-**🧱 Tenant isolation in the query**<br/>
+**Tenant isolation in the query**<br/>
 Repository methods require a `userID` and filter `AND user_id = ?`. Another user's resource is a `404`, not a `403`.
 
 </td>
@@ -73,13 +73,13 @@ Repository methods require a `userID` and filter `AND user_id = ?`. Another user
 <tr>
 <td valign="top">
 
-**📨 Async by default**<br/>
+**Async by default**<br/>
 Signup publishes `email.welcome` to a durable topic exchange. An in-process worker consumes it with manual ack and prefetch 1.
 
 </td>
 <td valign="top">
 
-**🛑 Production hygiene**<br/>
+**Production hygiene**<br/>
 Server timeouts, 30 s graceful drain, fail-fast config validation, structured Zap logs, env-over-yaml config.
 
 </td>
@@ -88,7 +88,7 @@ Server timeouts, 30 s graceful drain, fail-fast config validation, structured Za
 
 ---
 
-## ✦ Architecture
+## Architecture
 
 <div align="center">
 <img src="assets/architecture.svg" width="100%" alt="HashVault architecture: a client calls a single Go binary over HTTPS; the binary uses PostgreSQL, Redis, RabbitMQ and S3; file bytes move directly between the client and S3 via presigned URLs"/>
@@ -96,11 +96,9 @@ Server timeouts, 30 s graceful drain, fail-fast config validation, structured Za
 
 The binary is layered, and each layer talks to the one below only through an interface:
 
-```
-HTTP (Gin, middleware) ─► Handlers ─► Services ─► Repositories / ObjectStore / Publisher ─► Postgres · S3 · RabbitMQ
-   transport only           bind,       business      persistence only;
-                            respond     rules         translate driver errors
-```
+<div align="center">
+<img src="assets/layers.svg" width="100%" alt="Request path through the binary: HTTP (Gin, middleware), handlers, services and adapters, each reached through an interface, then Postgres, S3 and RabbitMQ; the response returns the same way"/>
+</div>
 
 | Layer | Knows about | Never knows about |
 |---|---|---|
@@ -113,119 +111,37 @@ Implementations are unexported structs that their constructors return *as the in
 
 ---
 
-## ✦ How it works
+## How it works
 
 ### Upload with deduplication
 
 The client hashes the file *before* uploading anything, so a duplicate costs one round trip and zero bytes.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant A as HashVault API
-    participant P as PostgreSQL
-    participant S as S3 / MinIO
-
-    C->>C: sha256(file), size
-    C->>A: POST /files/init-upload {name, size, checksum}
-    A->>P: folder owned by caller? quota OK?
-    A->>P: SELECT storage_objects WHERE checksum = ?
-    alt bytes already stored
-        A-->>C: 200 {deduplicated: true}
-        Note over C,S: no upload at all
-    else new content
-        A->>A: presign PUT objects/{sha256} (15 min, local signing)
-        A-->>C: 200 {upload_url}
-        C->>S: PUT bytes (direct)
-        S-->>C: 200
-    end
-    C->>A: POST /files/confirm {name, size, checksum}
-    A->>P: create storage_object (ref_count 1) or ref_count + 1
-    A->>P: INSERT files · used_storage += size
-    A-->>C: 201 {file}
-```
+<div align="center">
+<img src="assets/upload-flow.svg" width="100%" alt="Upload sequence played twice: a duplicate (init-upload answers deduplicated, nothing is uploaded) and new content (presigned PUT straight to S3), both ending in confirm, which creates the storage object or increments ref_count"/>
+</div>
 
 Download is the mirror image: `GET /files/:id/download` checks ownership, then returns a 15-minute presigned `GET` URL. On delete, the file row is soft-deleted and `ref_count` drops by one. At zero, the S3 object and its row are removed.
 
 ### Sessions: access + refresh tokens
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant A as HashVault API
-    participant R as Redis
-
-    C->>A: POST /auth/login {email, password}
-    A->>A: bcrypt compare (cost 10)
-    A->>R: SET refresh_token:{sha256(rt)} = user_id  EX 7d
-    A-->>C: {access_token (JWT, 15 min), refresh_token (opaque)}
-
-    Note over C,A: every request: Authorization: Bearer <JWT>, verified with the key alone
-
-    C->>A: POST /auth/refresh {refresh_token}
-    A->>R: GET refresh_token:{sha256(rt)}
-    A->>R: DEL (rotation: the old token dies)
-    A->>R: SET new refresh token
-    A-->>C: new pair
-```
+<div align="center">
+<img src="assets/session-flow.svg" width="100%" alt="Login stores sha256 of the refresh token in Redis and returns a 15-minute JWT plus an opaque refresh token; requests verify the JWT locally; refresh deletes the old token and stores a new one"/>
+</div>
 
 Refresh tokens are 256-bit random values, so storing `sha256(token)` is enough: a Redis dump yields nothing usable. If Redis is unavailable, `/refresh` **fails closed** with `401`.
 
 ### Data model
 
-```mermaid
-erDiagram
-    USERS ||--o{ FOLDERS : owns
-    USERS ||--o{ FILES : owns
-    FOLDERS |o--o{ FOLDERS : "parent of"
-    FOLDERS |o--o{ FILES : contains
-    STORAGE_OBJECTS ||--|{ FILES : "referenced by"
-    FILES ||--o{ SHARE_LINKS : "shared via"
-
-    USERS {
-        uuid id PK
-        text email UK
-        text password_hash "bcrypt; empty for Google-only"
-        bigint storage_limit "10 GiB default"
-        bigint used_storage
-        timestamptz deleted_at "soft delete"
-    }
-    FOLDERS {
-        uuid id PK
-        uuid user_id
-        uuid parent_folder_id "NULL = root"
-        text name
-    }
-    FILES {
-        uuid id PK
-        uuid user_id
-        uuid folder_id "NULL = root"
-        uuid storage_object_id FK
-        text file_name
-        text mime_type
-    }
-    STORAGE_OBJECTS {
-        uuid id PK
-        varchar checksum UK "sha256 hex"
-        text s3_key "objects/{checksum}"
-        bigint size
-        int ref_count
-    }
-    SHARE_LINKS {
-        uuid id PK
-        uuid file_id
-        varchar token UK
-        timestamptz expires_at
-    }
-```
+<div align="center">
+<img src="assets/data-model.svg" width="100%" alt="Data model: users own folders and files, folders nest and contain files, each file references one storage object keyed by a unique SHA-256, and files can have share links; ref_count rises when a second file points at the same bytes"/>
+</div>
 
 IDs are UUIDs generated in the app (`BeforeCreate`), so they can't be enumerated and are known before the `INSERT`. `files` and `folders` are soft-deleted. `storage_objects` are immutable and hard-deleted at `ref_count = 0`.
 
 ---
 
-## ✦ Quickstart
+## Quickstart
 
 **Requirements:** Go 1.26+, Docker (with Compose), and `jq` for the walkthrough.
 
@@ -274,11 +190,11 @@ docker compose exec postgres psql -U hashvault -d hashvault \
 
 ---
 
-## ✦ API
+## API
 
-All routes are under `/api/v1`. Success bodies are `{"data": …}` and errors are `{"error": "…"}`. 🔒 = requires `Authorization: Bearer <access_token>`.
+All routes are under `/api/v1`. Success bodies are `{"data": …}` and errors are `{"error": "…"}`. **Auth: yes** means the route requires `Authorization: Bearer <access_token>`.
 
-| Method | Route | | Purpose | Success |
+| Method | Route | Auth | Purpose | Success |
 |---|---|:-:|---|---|
 | `POST` | `/auth/register` | | create account, returns a token pair | `201` |
 | `POST` | `/auth/login` | | email + password → token pair | `200` |
@@ -286,22 +202,22 @@ All routes are under `/api/v1`. Success bodies are `{"data": …}` and errors ar
 | `POST` | `/auth/logout` | | revoke a refresh token | `200` |
 | `GET` | `/auth/google` | | Google consent URL + CSRF `state` | `200` |
 | `GET` | `/auth/google/callback` | | exchange the code → token pair | `200` |
-| `POST` | `/folders` | 🔒 | create (optionally under `parent_folder_id`) | `201` |
-| `GET` | `/folders` | 🔒 | list root folders | `200` |
-| `GET` | `/folders/:id` | 🔒 | list a folder's children | `200` |
-| `PATCH` | `/folders/:id` | 🔒 | rename | `200` |
-| `DELETE` | `/folders/:id` | 🔒 | soft-delete | `204` |
-| `POST` | `/files/init-upload` | 🔒 | quota + dedup check → presigned `PUT` (or `deduplicated: true`) | `200` |
-| `POST` | `/files/confirm` | 🔒 | record the file, link or create the storage object | `201` |
-| `GET` | `/files/:id/download` | 🔒 | presigned `GET` URL | `200` |
-| `DELETE` | `/files/:id` | 🔒 | soft-delete, `ref_count − 1`, purge at 0 | `204` |
+| `POST` | `/folders` | yes | create (optionally under `parent_folder_id`) | `201` |
+| `GET` | `/folders` | yes | list root folders | `200` |
+| `GET` | `/folders/:id` | yes | list a folder's children | `200` |
+| `PATCH` | `/folders/:id` | yes | rename | `200` |
+| `DELETE` | `/folders/:id` | yes | soft-delete | `204` |
+| `POST` | `/files/init-upload` | yes | quota + dedup check → presigned `PUT` (or `deduplicated: true`) | `200` |
+| `POST` | `/files/confirm` | yes | record the file, link or create the storage object | `201` |
+| `GET` | `/files/:id/download` | yes | presigned `GET` URL | `200` |
+| `DELETE` | `/files/:id` | yes | soft-delete, `ref_count − 1`, purge at 0 | `204` |
 | `GET` | `/health` | | liveness | `200` |
 
 Error mapping is centralised in `respondServiceError`: email taken → `409`, bad credentials/token → `401`, quota exceeded → `422`, not found *or not yours* → `404`, validation → `400`.
 
 ---
 
-## ✦ Configuration
+## Configuration
 
 Non-secret settings live in [`config.yaml`](config.yaml). Secrets come from the environment (`.env` is loaded for local dev). **An environment variable always wins over yaml**: `SECTION_KEY` maps to `section.key`.
 
@@ -320,7 +236,7 @@ TTLs (`jwt.access_ttl` = 15 min, `jwt.refresh_ttl` = 7 days), pool sizes and the
 
 ---
 
-## ✦ Project layout
+## Project layout
 
 ```
 cmd/api/main.go            wiring: config → infra → repos → services → routes → server; graceful shutdown
@@ -342,7 +258,7 @@ pkg/
 
 ---
 
-## ✦ Engineering decisions
+## Engineering decisions
 
 The full log, with alternatives and *"would flip if"* conditions, is in [`Decisions.md`](Decisions.md). The ones that shaped the system:
 
@@ -358,24 +274,24 @@ The full log, with alternatives and *"would flip if"* conditions, is in [`Decisi
 
 ---
 
-## ✦ Status & roadmap
+## Status & roadmap
 
-| Phase | Scope | |
+| Phase | Scope | Status |
 |---|---|:-:|
-| 0 | Foundation: config, logging, Postgres/Redis, graceful shutdown | ✅ |
-| 1 | Models & repositories | ✅ |
-| 2 | Auth: JWT, refresh rotation, Google OAuth, RabbitMQ worker | ✅ |
-| 3 | Folders | ✅ |
-| 4a | File upload/download via presigned URLs | ✅ |
-| 4b | Content-addressed deduplication + reference counting | ✅ |
-| **4e** | **Integration test suite (testcontainers) + concurrency and dedup security fixes** | 🔨 next |
-| 4c / 4d | Multipart & resumable uploads · adaptive chunk sizing | ⏳ |
-| 5 | Sharing (links, permissions) | ⏳ |
-| 6 | Email worker: SMTP, retries, dead-letter queue | ⏳ |
-| 7 | Rate limiting (Redis sliding window) | ⏳ |
-| 9 · 10 · 12 | Observability · CI/CD · versioned migrations | ⏳ |
-| 11 | AWS (ECS Fargate) with Terraform | ⏳ |
-| 13 | Content-defined chunking (Rabin fingerprints) for sub-file dedup | ⏳ |
+| 0 | Foundation: config, logging, Postgres/Redis, graceful shutdown | done |
+| 1 | Models & repositories | done |
+| 2 | Auth: JWT, refresh rotation, Google OAuth, RabbitMQ worker | done |
+| 3 | Folders | done |
+| 4a | File upload/download via presigned URLs | done |
+| 4b | Content-addressed deduplication + reference counting | done |
+| **4e** | **Integration test suite (testcontainers) + concurrency and dedup security fixes** | **next** |
+| 4c / 4d | Multipart & resumable uploads · adaptive chunk sizing | planned |
+| 5 | Sharing (links, permissions) | planned |
+| 6 | Email worker: SMTP, retries, dead-letter queue | planned |
+| 7 | Rate limiting (Redis sliding window) | planned |
+| 9 · 10 · 12 | Observability · CI/CD · versioned migrations | planned |
+| 11 | AWS (ECS Fargate) with Terraform | planned |
+| 13 | Content-defined chunking (Rabin fingerprints) for sub-file dedup | planned |
 
 ### Known issues (being fixed in phase 4e)
 
