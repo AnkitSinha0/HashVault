@@ -85,7 +85,8 @@ func main() {
 	authSvc := services.NewAuthService(userRepo, redisClient, jwtManager, publisher)
 	oauthSvc := services.NewOAuthService(cfg, userRepo, redisClient, jwtManager)
 	folderSvc := services.NewFolderService(folderRepo)
-	fileSvc := services.NewFileService(fileRepo, storageObjectRepo, folderRepo, userRepo, s3Client)
+	txManager := repositories.NewTxManager(db)
+	fileSvc := services.NewFileService(fileRepo, storageObjectRepo, folderRepo, userRepo, s3Client, txManager)
 
 	// --- Queue worker ---
 

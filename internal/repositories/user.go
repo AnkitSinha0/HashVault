@@ -16,6 +16,9 @@ type UserRepository interface {
 	// IncrementStorage adds delta bytes to used_storage atomically.
 	// delta is negative when freeing space. '_____'
 	IncrementStorage(ctx context.Context, id uuid.UUID, delta int64) error
+	// ReserveStorage adds delta bytes only if the result stays within
+	// storage_limit, as one statement. It reports false when over quota.
+	ReserveStorage(ctx context.Context, id uuid.UUID, delta int64) (bool, error)
 }
 
 type userRepo struct {
@@ -27,12 +30,12 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (r *userRepo) Create(ctx context.Context, user *models.User) error {
-	return r.db.WithContext(ctx).Create(user).Error
+	return dbFromContext(ctx, r.db).WithContext(ctx).Create(user).Error
 }
 
 func (r *userRepo) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
-	err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
+	err := dbFromContext(ctx, r.db).WithContext(ctx).Where("email = ?", email).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrNotFound
 	}
@@ -57,7 +60,7 @@ func (r *userRepo) FindByEmail(ctx context.Context, email string) (*models.User,
 
 func (r *userRepo) FindByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
-	err := r.db.WithContext(ctx).First(&user, "id = ?", id).Error
+	err := dbFromContext(ctx, r.db).WithContext(ctx).First(&user, "id = ?", id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrNotFound
 	}
@@ -77,9 +80,20 @@ func (r *userRepo) FindByID(ctx context.Context, id uuid.UUID) (*models.User, er
 
 // WHY updatecolumn not update cause update will trigger updatedAt etc
 func (r *userRepo) IncrementStorage(ctx context.Context, id uuid.UUID, delta int64) error {
-	return r.db.WithContext(ctx).
+	return dbFromContext(ctx, r.db).WithContext(ctx).
 		Model(&models.User{}).
 		Where("id = ?", id).
 		UpdateColumn("used_storage", gorm.Expr("used_storage + ?", delta)).
 		Error
+}
+
+// The limit check lives in the WHERE, so two uploads racing for the last
+// free bytes can't both pass it: the second UPDATE re-reads the row after
+// the first commits and matches nothing.
+func (r *userRepo) ReserveStorage(ctx context.Context, id uuid.UUID, delta int64) (bool, error) {
+	result := dbFromContext(ctx, r.db).WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ? AND used_storage + ? <= storage_limit", id, delta).
+		UpdateColumn("used_storage", gorm.Expr("used_storage + ?", delta))
+	return result.RowsAffected == 1, result.Error
 }

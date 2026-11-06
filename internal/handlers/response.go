@@ -33,6 +33,10 @@ func respondServiceError(c *gin.Context, err error) {
 		respondError(c, http.StatusUnauthorized, err.Error())
 	case errors.Is(err, services.ErrStorageExceeded):
 		respondError(c, http.StatusUnprocessableEntity, err.Error())
+	case errors.Is(err, services.ErrUploadNotVerified):
+		respondError(c, http.StatusUnprocessableEntity, err.Error())
+	case errors.Is(err, services.ErrInvalidChecksum):
+		respondError(c, http.StatusBadRequest, err.Error())
 	case errors.Is(err, repositories.ErrNotFound):
 		respondError(c, http.StatusNotFound, "not found")
 	default:

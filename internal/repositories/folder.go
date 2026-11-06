@@ -28,12 +28,12 @@ func NewFolderRepository(db *gorm.DB) FolderRepository {
 }
 
 func (r *folderRepo) Create(ctx context.Context, folder *models.Folder) error {
-	return r.db.WithContext(ctx).Create(folder).Error
+	return dbFromContext(ctx, r.db).WithContext(ctx).Create(folder).Error
 }
 
 func (r *folderRepo) FindByID(ctx context.Context, id, userID uuid.UUID) (*models.Folder, error) {
 	var folder models.Folder
-	err := r.db.WithContext(ctx).
+	err := dbFromContext(ctx, r.db).WithContext(ctx).
 		Where("id = ? AND user_id = ?", id, userID).
 		First(&folder).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -44,7 +44,7 @@ func (r *folderRepo) FindByID(ctx context.Context, id, userID uuid.UUID) (*model
 
 func (r *folderRepo) ListByParent(ctx context.Context, userID uuid.UUID, parentID *uuid.UUID) ([]models.Folder, error) {
 	var folders []models.Folder
-	q := r.db.WithContext(ctx).Where("user_id = ?", userID)
+	q := dbFromContext(ctx, r.db).WithContext(ctx).Where("user_id = ?", userID)
 	if parentID == nil {
 		q = q.Where("parent_folder_id IS NULL")
 	} else {
@@ -54,11 +54,11 @@ func (r *folderRepo) ListByParent(ctx context.Context, userID uuid.UUID, parentI
 }
 
 func (r *folderRepo) Update(ctx context.Context, folder *models.Folder) error {
-	return r.db.WithContext(ctx).Save(folder).Error
+	return dbFromContext(ctx, r.db).WithContext(ctx).Save(folder).Error
 }
 
 func (r *folderRepo) Delete(ctx context.Context, id, userID uuid.UUID) error {
-	result := r.db.WithContext(ctx).
+	result := dbFromContext(ctx, r.db).WithContext(ctx).
 		Where("id = ? AND user_id = ?", id, userID).
 		Delete(&models.Folder{})
 	if result.Error != nil {

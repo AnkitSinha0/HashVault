@@ -12,7 +12,7 @@ import (
 type InitUploadRequest struct {
 	FileName string     `json:"file_name" binding:"required,min=1,max=255"`
 	MimeType string     `json:"mime_type" binding:"required"`
-	Size     int64      `json:"size"      binding:"required,gt=0"`
+	Size     int64      `json:"size"      binding:"required,gt=0,lte=5368709120"` // 5 GiB: S3's single-PUT limit
 	Checksum string     `json:"checksum"  binding:"required,len=64,hexadecimal"`
 	FolderID *uuid.UUID `json:"folder_id"`
 }
@@ -21,8 +21,11 @@ type InitUploadRequest struct {
 // all. Deduplicated=true means the content already exists in S3 — the
 // client should call /files/confirm immediately without uploading.
 type InitUploadResponse struct {
-	UploadURL    string `json:"upload_url,omitempty"`
-	Deduplicated bool   `json:"deduplicated"`
+	UploadURL string `json:"upload_url,omitempty"`
+	// UploadHeaders must be sent with the PUT. x-amz-checksum-sha256 makes
+	// the store reject bytes that don't match the checksum.
+	UploadHeaders map[string]string `json:"upload_headers,omitempty"`
+	Deduplicated  bool              `json:"deduplicated"`
 }
 
 // ConfirmUploadRequest carries the same identifying fields as init so the
@@ -31,7 +34,7 @@ type InitUploadResponse struct {
 type ConfirmUploadRequest struct {
 	FileName string     `json:"file_name" binding:"required,min=1,max=255"`
 	MimeType string     `json:"mime_type" binding:"required"`
-	Size     int64      `json:"size"      binding:"required,gt=0"`
+	Size     int64      `json:"size"      binding:"required,gt=0,lte=5368709120"`
 	Checksum string     `json:"checksum"  binding:"required,len=64,hexadecimal"`
 	FolderID *uuid.UUID `json:"folder_id"`
 }
