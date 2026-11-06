@@ -115,13 +115,13 @@ Implementations are unexported structs that their constructors return *as the in
 
 ### Upload with deduplication
 
-The client hashes the file *before* uploading anything, so a duplicate costs one round trip and zero bytes.
+The client hashes the file *before* uploading anything. Re-uploading a file **you already own** costs one round trip and zero bytes. Anyone else uploads the bytes to a private staging key, where the store itself checks the SHA-256. Confirm then checks the store's record and either moves the bytes to `objects/{sha256}` or, if that content already exists, adds a reference and discards the staged copy. Storage is still shared across users, but knowing a hash is never enough to get a file.
 
 <div align="center">
 <img src="assets/upload-flow.svg" width="100%" alt="Upload sequence played twice: a duplicate (init-upload answers deduplicated, nothing is uploaded) and new content (presigned PUT straight to S3), both ending in confirm, which creates the storage object or increments ref_count"/>
 </div>
 
-Download is the mirror image: `GET /files/:id/download` checks ownership, then returns a 15-minute presigned `GET` URL. On delete, the file row is soft-deleted and `ref_count` drops by one. At zero, the S3 object and its row are removed.
+Download is the mirror image: `GET /files/:id/download` checks ownership, then returns a 15-minute presigned `GET` URL that always downloads as an attachment. Delete is one transaction: the file row is soft-deleted and `ref_count` drops by one. At zero, the object row is removed and its bytes are deleted last, so a failure rolls everything back.
 
 ### Sessions: access + refresh tokens
 
@@ -168,10 +168,13 @@ TOKEN=$(curl -s -X POST $API/auth/register -H "$json" \
 echo 'hello hashvault' > hello.txt
 META=$(jq -n --arg sum "$(sha256sum hello.txt | cut -d' ' -f1)" --argjson size "$(wc -c < hello.txt)" \
   '{file_name:"hello.txt", mime_type:"text/plain", size:$size, checksum:$sum}')
-URL=$(curl -s -X POST $API/files/init-upload -H "$json" -H "Authorization: Bearer $TOKEN" -d "$META" | jq -r .data.upload_url)
+INIT=$(curl -s -X POST $API/files/init-upload -H "$json" -H "Authorization: Bearer $TOKEN" -d "$META")
+URL=$(echo "$INIT" | jq -r .data.upload_url)
+SUM=$(echo "$INIT" | jq -r '.data.upload_headers["x-amz-checksum-sha256"]')
 
-# 3. upload straight to MinIO (the API never sees the bytes), then confirm
-curl -s -X PUT --upload-file hello.txt "$URL"
+# 3. upload straight to MinIO (the API never sees the bytes), then confirm.
+#    The checksum header makes MinIO reject bytes that don't match the hash.
+curl -s -X PUT -H "x-amz-checksum-sha256: $SUM" --upload-file hello.txt "$URL"
 FILE=$(curl -s -X POST $API/files/confirm -H "$json" -H "Authorization: Bearer $TOKEN" -d "$META" | jq -r .data.id)
 
 # 4. download through a presigned GET
@@ -179,7 +182,7 @@ curl -s "$(curl -s $API/files/$FILE/download -H "Authorization: Bearer $TOKEN" |
 # → hello hashvault
 ```
 
-Register a second user and run step 2 with the same file: `init-upload` answers `{"deduplicated": true}` and returns no URL. After confirming, `storage_objects` has **one** row with `ref_count = 2`:
+Run step 2 again as the same user: `init-upload` answers `{"deduplicated": true}` with no URL, because you already own those bytes. Register a second user and run steps 2–3 with the same file: they still upload (they have to prove they have the bytes), but after confirming, `storage_objects` has **one** row with `ref_count = 2`:
 
 ```bash
 docker compose exec postgres psql -U hashvault -d hashvault \
@@ -297,9 +300,15 @@ The full log, with alternatives and *"would flip if"* conditions, is in [`Decisi
 
 Found through code review and reproduced against the running system. Details, with real output, are in [`retro.md`](retro.md).
 
-- **Dedup trusts the client's hash.** Anyone who knows a file's SHA-256 can confirm it and download bytes they never had. Confirm also doesn't verify that the upload happened: a confirm with no `PUT` succeeds. The fix: upload to a per-user staging key, have the server verify size and hash, then promote to `objects/{sha256}`.
-- **Check-then-act races.** Two first-time confirms of the same checksum both try to `INSERT`. `DecrementRefCount` runs `UPDATE` then `SELECT`, so two concurrent deletes can both see zero. The quota check is read-then-write. The fixes: `INSERT … ON CONFLICT DO UPDATE … RETURNING`, `UPDATE … RETURNING ref_count`, a conditional quota `UPDATE`, and one transaction per confirm.
+**Fixed on 2026-10-21:**
+- **Dedup trusted the client.** Knowing a SHA-256 was enough to download a file, anyone could plant different bytes under a popular file's hash, and confirm never checked that an upload happened or how big it was. Uploads now go to a per-user staging key. The store verifies the SHA-256, and the signed URL fixes the size. Confirm checks the store's record before moving the bytes under `objects/{sha256}`, and only a file's owner may skip the upload.
+- **Deleting the last copy broke that content for everyone.** The S3 bytes were deleted, the row delete failed on a foreign key, and later uploads were linked to the dead row. Delete is now one transaction that removes the bytes last.
+- **Check-then-act races** in confirm, delete and the quota check. These now use `INSERT … ON CONFLICT … RETURNING`, `UPDATE … RETURNING ref_count`, and a conditional quota `UPDATE`.
+
+**Still open:**
 - **Refresh rotation is `GET` + `DEL`.** Concurrent refreshes with one token can each succeed. The fix is `GETDEL`.
+- **Deleting a folder doesn't touch its contents.** Files inside stay downloadable and count against quota.
+- **Google sign-in links accounts by email** without checking that Google verified the email.
 - **No automated tests yet.** Phase 4e adds integration tests against real Postgres and Redis (testcontainers), starting with the concurrency cases above.
 
 ---
